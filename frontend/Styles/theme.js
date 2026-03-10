@@ -14,7 +14,44 @@
 //   color: theme.lightMode.background
 
 
+const tipografia = {
+  fonts: {
+    regular: "DMSans_400Regular",
+    medium: "DMSans_500Medium",
+    bold: "DMSans_700Bold",
+  },
+  fontSize: {
+    // Títulos
+    titleLarge: 24,
+    title: 22,
 
+    // Inputs
+    input: 16,          // inputs de registro
+    inputSearch: 14,    // input de búsqueda
+
+    // Tarjetas
+    cardHome: 13,       // 3 tarjetas del home
+    card: 14,           // tarjetas generales
+  },
+  fontWeight: {
+    regular: "DMSans_400Regular",
+    medium: "DMSans_500Medium",
+    bold: "DMSans_700Bold",
+  },
+}
+
+const shadows = {
+  card: {
+    shadowColor: "#FFFFFF",
+    shadowOffset: {
+      width: 0,   // X
+      height: 4,  // Y
+    },
+    shadowOpacity: 0.1,  // ajusta según Figma
+    shadowRadius: 10,    // desenfocar
+    elevation: 8,        // propagación → Android
+  },
+}
 
 const theme = {
     
@@ -29,8 +66,8 @@ const theme = {
 
         Headers: {
             gradientColors:["#16A34A", "#22C55E"],
-            gradientStart:{x: 0, y: 0 },
-            gradientEnd: { x: 1, y: 1 },
+            gradianteCenter: {x: 0.5, y: 0.5 },
+            gradianteRadius: { x: 0.5, y: 0.5 },
         },
 
         //Cards 
@@ -100,8 +137,10 @@ const theme = {
         background: "#0F172A",
 
         //Header (el cuadro verde que sale en la parte superior del Home, Perfil etc)
-        Headers: {
-            background: "radial-gradient(circle, #16A34A 100%, #16A34A 100%)",
+         Headers: {
+            gradientColors:["#16A34A", "#16A34A"],
+            gradianteCenter: { x: 0.5, y: 0.5 },
+            gradianteRadius: { x: 0.5, y: 0.5 },
         },
 
         //Cards 
@@ -159,6 +198,8 @@ const theme = {
             iconoActivo: "#22C55E", // Este va con el texto #22C55E
             iconoInactivo : "#94A3B8" ,//Texto debajo del icono es el mismo color
         },
+
+
     }
 
 }
