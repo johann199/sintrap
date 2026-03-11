@@ -14,7 +14,7 @@ import { BottomNavBar } from "../components/BottomNavBar";
 // ── Importa aquí los componentes de cada tab ──────────────────
 import EditarPerfilForm from "../components/forms/EditarPerfilForm";
 
-const ROL_ACTUAL = "conductor"; // cambia a 'usuario' o 'administrador' para probar
+const ROL_ACTUAL = "usuario"; // cambia a 'usuario' o 'administrador' para probar
 
 export default function Home() {
   const [tabActivo, setTabActivo] = useState("inicio");
