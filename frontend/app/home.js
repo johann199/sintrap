@@ -1,14 +1,4 @@
-<<<<<<< HEAD
-  import { View, Text, StyleSheet, TouchableOpacity, Platform } from "react-native";
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BottomNavBar } from '../components/BottomNavBar';
-import Header from '../components/Header';
 
-
-
-
-=======
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -21,7 +11,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { BottomNavBar } from "../components/BottomNavBar";
->>>>>>> 79c01472531b8f220c797393ea4caa6e6d94df63
+import Header from "../components/Header";
+
 
 // ── Importa aquí los componentes de cada tab ──────────────────
 import EditarPerfilForm from "../components/forms/EditarPerfilForm";
@@ -123,11 +114,7 @@ export default function Home() {
   }
 
   return (
-<<<<<<< HEAD
-    
-    <View>
-      <Header titulo="Hola " mode="light" />
-=======
+
     <View style={styles.container}>
       {/* ── Header fijo (siempre visible) ──────────────────── */}
       <View style={styles.header}>
@@ -171,7 +158,7 @@ function TabPendiente({ nombre, icono }) {
       <Ionicons name={icono} size={48} color="#D1D5DB" />
       <Text style={styles.pendienteTexto}>{nombre}</Text>
       <Text style={styles.pendienteSubtexto}>Próximamente</Text>
->>>>>>> 79c01472531b8f220c797393ea4caa6e6d94df63
+
     </View>
   );
 }
