@@ -19,6 +19,8 @@ import EditarPerfilForm from "../components/forms/EditarPerfilForm";
 
 const ROL_ACTUAL = "usuario"; // cambia a 'usuario' o 'administrador' para probar
 
+
+
 export default function Home() {
   const [tabActivo, setTabActivo] = useState("inicio");
 
@@ -30,6 +32,23 @@ export default function Home() {
   useEffect(() => {
     cargarPerfil();
   }, []);
+
+  const HEADER_CONFIGS = {
+  usuario: {
+    inicio:    { titulo: `Hola ${perfil?.nombre?.split(' ')[0] ?? 'Usuario'}`,
+                  subtitulo: '¿a donde vamos hoy?'},
+    favoritos: { titulo: "Mis Favoritos" },
+    rutas:     { titulo: "Rutas" },
+    perfil:    { titulo: "Mi Perfil" },
+  },
+  administrador: {
+    inicio:   { titulo: "Panel Administrivo" },
+    rutas:    { titulo: "Gestion de rutas" },
+    crear:    { titulo: "Crear Ruta" },
+    buses:    { titulo: "Buses" },
+    graficas: { titulo: "Gráficas" },
+  },
+};
 
   const cargarPerfil = async () => {
     try {
@@ -117,8 +136,8 @@ export default function Home() {
 
     <View style={styles.container}>
       {/* ── Header fijo (siempre visible) ──────────────────── */}
-      <Header titulo={`Hola ${perfil?.nombre?.split(' ')[0] ?? 'Usuario'}`} mode="light" />
-      
+      {tabActivo !=='perfil' && <Header titulo={HEADER_CONFIGS[ROL_ACTUAL][tabActivo]?.titulo ?? "Inicio" } subtitulo={HEADER_CONFIGS[ROL_ACTUAL][tabActivo]?.subtitulo ?? ""}  
+      mode="light" />}     
 
       {/* ── Área de contenido (cambia según el tab) ─────────── */}
       <View style={styles.contenido}>{renderContenido()}</View>

@@ -1,9 +1,8 @@
 import { View, Text, StyleSheet } from "react-native";
 import Svg, { Defs, RadialGradient, Stop, Rect } from "react-native-svg";
-import { LinearGradient } from "expo-linear-gradient";
 import theme from "../constants/theme";
 
-const Header = ({titulo, mode = "light"})=>{
+const Header = ({titulo,subtitulo, mode = "light"})=>{
  const colors = mode ==="dark" ? theme.darkMode : theme.lightMode;
  const h = colors.Headers;
 
@@ -27,6 +26,7 @@ const Header = ({titulo, mode = "light"})=>{
 
      <View style={styles.content}>
         <Text style={styles.title}>{titulo}</Text>
+        <Text style={styles.subtitulo}>{subtitulo}</Text>
       </View>
 
     </View>
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
 
   content: {
     flex:1,
-    paddingTop: 80,
+    paddingTop: 70,
     paddingBottom: 24,
     paddingHorizontal: 35,
   },  
@@ -53,6 +53,12 @@ const styles = StyleSheet.create({
     fontSize: theme.lightMode ? 22 : 22,
     fontFamily: "DMSans_700Bold",
   },
+  subtitulo:{
+    color: "#E8FCEB",
+    fontSize: theme.lightMode ? 16 :16,
+    marginTop: 10,
+    fontFamily: "DMSans_700Bold"
+  }
 
  
 });
