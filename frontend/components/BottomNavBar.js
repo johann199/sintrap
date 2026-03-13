@@ -64,19 +64,22 @@ export function BottomNavBar({ rol = 'usuario', initialTab, onTabPress }) {
   );
 }
 
-const styles = StyleSheet.create({
+ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 8,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 12,
+    backgroundColor: '#E8EDF0',  // ← gris azulado como Figma
+    borderRadius: 40,             // ← forma de píldora completa
+    marginHorizontal: 20,         // ← separado de los bordes
+    marginBottom: Platform.OS === 'ios' ? 28 : 16,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    // Sombra iOS
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    // Sombra Android
+    elevation: 8,
   },
   tab: {
     flex: 1,
