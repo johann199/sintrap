@@ -1,34 +1,53 @@
 import { View, Text, StyleSheet } from "react-native";
+import Svg, { Defs, RadialGradient, Stop, Rect } from "react-native-svg";
 import { LinearGradient } from "expo-linear-gradient";
 import theme from "../constants/theme";
 
-
 const Header = ({titulo, mode = "light"})=>{
  const colors = mode ==="dark" ? theme.darkMode : theme.lightMode;
+ const h = colors.Headers;
 
  return(
-    <View>
-     <LinearGradient
-        colors = {colors.Headers.gradientColors}
-        style = {styles.header}
+    <View style = {styles.container}>
+    <Svg height="160" width="100%" style={StyleSheet.absoluteFill}>
+      <Defs>
+        <RadialGradient
+        id="radial"
+        cx = {h.cx}
+        cy = {h.cy}
+        rx = {h.rx}
+        ry = {h.ry}
         >
-            <Text style={styles.title} >{titulo}</Text>
-     </LinearGradient>
+        <Stop offset = "0%" stopColor ={h.innerColor} />
+        <Stop offset = "100%" stopColor ={h.outerColor} />
+        </RadialGradient>
+      </Defs>
+      <Rect width="100%" height="160" fill="url(#radial)"/>
+    </Svg>
+
+     <View style={styles.content}>
+        <Text style={styles.title}>{titulo}</Text>
+      </View>
+
     </View>
  );
 };
 
 const styles = StyleSheet.create({
-
-  header: {
-    width: "100%",
+  container:{
+    width:"100%",
     height: 160,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    overflow: "hidden"
+  },
+
+  content: {
+    flex:1,
     paddingTop: 80,
     paddingBottom: 24,
     paddingHorizontal: 35,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-  },
+  },  
   title: {
     color: "#FFFFFF",
     fontSize: theme.lightMode ? 22 : 22,
@@ -37,4 +56,5 @@ const styles = StyleSheet.create({
 
  
 });
- export default Header;
+
+export default Header ;
