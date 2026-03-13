@@ -85,7 +85,7 @@ export default function Home() {
         return <TabPendiente nombre="Reportar" icono="add-circle-outline" />;
 
       case "favoritos":
-        return <TabPendiente nombre="Favoritos" icono="heart-outline" />;
+        return <TabPendiente nombre="Favoritos" icono="star" />;
 
       case "perfil":
         return (

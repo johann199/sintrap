@@ -6,7 +6,7 @@ const NAV_CONFIGS = {
   // Rol: Usuario normal
   usuario: [
     { key: 'inicio',    label: 'Inicio',    icon: 'home'          },
-    { key: 'favoritos', label: 'Favoritos', icon: 'heart',        },
+    { key: 'favoritos', label: 'Favoritos', icon: 'star',        },
     { key: 'rutas',     label: 'Rutas',     icon: 'location'      },
     { key: 'perfil',    label: 'Perfil',    icon: 'person'        },
   ],
@@ -67,12 +67,15 @@ export function BottomNavBar({ rol = 'usuario', initialTab, onTabPress }) {
  const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#E8EDF0',  // ← gris azulado como Figma
-    borderRadius: 40,             // ← forma de píldora completa
-    marginHorizontal: 20,         // ← separado de los bordes
+    backgroundColor: '#ffffffff',  
+    borderRadius: 24, 
+    width: 365,
+    height: 70,             
+    marginHorizontal: 10,          
     marginBottom: Platform.OS === 'ios' ? 28 : 16,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    gap: 28,
     // Sombra iOS
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
