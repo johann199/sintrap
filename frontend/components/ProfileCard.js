@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 /**
  * ProfileCard Component
@@ -17,21 +18,16 @@ import {
  * - isActive: boolean
  * - avatarUri: string | null
  * - role: "usuario" | "admin" | "conductor"
- * - onTripHistory: function
- * - onNotifications: function
- * - onEditProfile: function
- * - onSettings: function
- * - onChangePassword: function
- * - onLogout: function
- * --- Solo admin ---
- * - onManageUsers: function
- * - onReports: function
- * - onManageRoutes: function
- * --- Solo conductor ---
- * - onMyVehicle: function
- * - onAssignedRoutes: function
- * - onToggleService: function
- * - serviceActive: boolean
+ *
+ * Handlers comunes:
+ * - onTripHistory, onNotifications, onEditProfile
+ * - onSettings, onChangePassword, onLogout
+ *
+ * Solo admin:
+ * - onManageUsers, onReports, onManageRoutes
+ *
+ * Solo conductor:
+ * - onMyVehicle, onAssignedRoutes, onToggleService, serviceActive
  */
 
 const ProfileCard = ({
@@ -56,62 +52,76 @@ const ProfileCard = ({
   onToggleService,
   serviceActive = true,
 }) => {
-  const roleLabel = {
-    usuario: "Usuario activo",
-    admin: "Administrador",
-    conductor: "Conductor",
-  }[role];
-
-  const roleBadgeColor = {
-    usuario: { bg: "#E8F8EF", text: "#27AE60" },
-    admin:   { bg: "#EAF0FB", text: "#2C6FE0" },
-    conductor: { bg: "#FEF5E7", text: "#E67E22" },
+  const roleConfig = {
+    usuario: {
+      label: "Usuario activo",
+      headerColor: "#27AE60",
+      badgeBg: "#E8F8EF",
+      badgeText: "#27AE60",
+      avatarBg: "#C0392B",
+    },
+    admin: {
+      label: "Administrador",
+      headerColor: "#2C6FE0",
+      badgeBg: "#EAF0FB",
+      badgeText: "#2C6FE0",
+      avatarBg: "#1A3A8F",
+    },
+    conductor: {
+      label: "Conductor",
+      headerColor: "#E67E22",
+      badgeBg: "#FEF5E7",
+      badgeText: "#E67E22",
+      avatarBg: "#A04000",
+    },
   }[role];
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
 
-      {/* ── Header con color por rol ── */}
-      <View style={[styles.header, styles[`header_${role}`]]}>
+      {/* ── Header ── */}
+      <View style={[styles.header, { backgroundColor: roleConfig.headerColor }]}>
         <View style={styles.avatarWrapper}>
           {avatarUri ? (
             <Image source={{ uri: avatarUri }} style={styles.avatar} />
           ) : (
-            <View style={[styles.avatarPlaceholder, styles[`avatar_${role}`]]} />
+            <View style={[styles.avatarPlaceholder, { backgroundColor: roleConfig.avatarBg }]}>
+              <Ionicons name="person" size={40} color="#fff" />
+            </View>
           )}
         </View>
       </View>
 
-      {/* ── Info del usuario ── */}
+      {/* ── Info ── */}
       <View style={styles.profileInfo}>
         <Text style={styles.name}>{name}</Text>
-        <View style={[styles.badgeContainer, { backgroundColor: roleBadgeColor.bg }]}>
-          <Text style={[styles.badgeText, { color: roleBadgeColor.text }]}>
-            {roleLabel}
+        <View style={[styles.badgeContainer, { backgroundColor: roleConfig.badgeBg }]}>
+          <Text style={[styles.badgeText, { color: roleConfig.badgeText }]}>
+            {roleConfig.label}
           </Text>
         </View>
         <Text style={styles.email}>{email}</Text>
       </View>
 
-      {/* ══════════ SECCIÓN EXCLUSIVA: ADMIN ══════════ */}
+      {/* ══ SOLO ADMIN ══ */}
       {role === "admin" && (
         <>
           <Text style={styles.sectionTitle}>Administración</Text>
           <View style={styles.card}>
             <MenuItem
-              icon="👥"
+              icon={<Ionicons name="people" size={22} color="#2C6FE0" />}
               label="Gestión de usuarios"
               onPress={onManageUsers}
             />
             <View style={styles.divider} />
             <MenuItem
-              icon="📊"
+              icon={<Ionicons name="bar-chart" size={22} color="#2C6FE0" />}
               label="Reportes"
               onPress={onReports}
             />
             <View style={styles.divider} />
             <MenuItem
-              icon="🗺️"
+              icon={<MaterialCommunityIcons name="map-marker-path" size={22} color="#2C6FE0" />}
               label="Gestión de rutas"
               onPress={onManageRoutes}
             />
@@ -119,19 +129,19 @@ const ProfileCard = ({
         </>
       )}
 
-      {/* ══════════ SECCIÓN EXCLUSIVA: CONDUCTOR ══════════ */}
+      {/* ══ SOLO CONDUCTOR ══ */}
       {role === "conductor" && (
         <>
           <Text style={styles.sectionTitle}>Mi servicio</Text>
           <View style={styles.card}>
             <MenuItem
-              icon="🚌"
+              icon={<Ionicons name="bus" size={22} color="#E67E22" />}
               label="Mi vehículo"
               onPress={onMyVehicle}
             />
             <View style={styles.divider} />
             <MenuItem
-              icon="🗺️"
+              icon={<MaterialCommunityIcons name="map-marker-path" size={22} color="#E67E22" />}
               label="Rutas asignadas"
               onPress={onAssignedRoutes}
             />
@@ -141,71 +151,68 @@ const ProfileCard = ({
               onPress={onToggleService}
               activeOpacity={0.6}
             >
-              <Text style={styles.menuIcon}>
-                {serviceActive ? "🟢" : "🔴"}
-              </Text>
+              <View style={styles.iconContainer}>
+                <Ionicons
+                  name={serviceActive ? "radio-button-on" : "radio-button-off"}
+                  size={22}
+                  color={serviceActive ? "#27AE60" : "#E74C3C"}
+                />
+              </View>
               <Text style={styles.menuLabel}>
                 Estado:{" "}
-                <Text
-                  style={{
-                    color: serviceActive ? "#27AE60" : "#E74C3C",
-                    fontWeight: "600",
-                  }}
-                >
+                <Text style={{ color: serviceActive ? "#27AE60" : "#E74C3C", fontWeight: "600" }}>
                   {serviceActive ? "En servicio" : "Fuera de servicio"}
                 </Text>
               </Text>
-              <Text style={styles.chevron}>›</Text>
+              <Ionicons name="chevron-forward" size={20} color="#BDC3C7" />
             </TouchableOpacity>
           </View>
         </>
       )}
 
-      {/* ══════════ ACTIVIDAD — todos los roles ══════════ */}
+      {/* ══ ACTIVIDAD — todos los roles ══ */}
       <Text style={styles.sectionTitle}>Actividad</Text>
       <View style={styles.card}>
         <MenuItem
-          icon="🚌"
+          icon={<Ionicons name="bus" size={22} color="#27AE60" />}
           label="Historial de viajes"
           onPress={onTripHistory}
         />
         <View style={styles.divider} />
         <MenuItem
-          icon="🔔"
+          icon={<Ionicons name="notifications" size={22} color="#F5A623" />}
           label="Notificaciones"
           onPress={onNotifications}
         />
       </View>
 
-      {/* ══════════ CUENTA — todos los roles ══════════ */}
+      {/* ══ CUENTA — todos los roles ══ */}
       <Text style={styles.sectionTitle}>Cuenta</Text>
       <View style={styles.card}>
         <MenuItem
-          icon="👤"
+          icon={<Ionicons name="person-circle" size={22} color="#27AE60" />}
           label="Editar perfil"
           onPress={onEditProfile}
-          iconStyle={{ color: "#27AE60" }}
         />
         <View style={styles.divider} />
         <MenuItem
-          icon="⚙️"
+          icon={<Ionicons name="settings" size={22} color="#7F8C8D" />}
           label="Configuración"
           onPress={onSettings}
         />
       </View>
 
-      {/* ══════════ SEGURIDAD — todos los roles ══════════ */}
+      {/* ══ SEGURIDAD — todos los roles ══ */}
       <Text style={styles.sectionTitle}>Seguridad</Text>
       <View style={styles.card}>
         <MenuItem
-          icon="🔒"
+          icon={<Ionicons name="lock-closed" size={22} color="#27AE60" />}
           label="Cambiar contraseña"
           onPress={onChangePassword}
-          iconStyle={{ color: "#27AE60" }}
         />
         <View style={styles.divider} />
         <MenuItem
-          icon="🚪"
+          icon={<MaterialCommunityIcons name="logout" size={22} color="#E74C3C" />}
           label="Cerrar sesión"
           onPress={onLogout}
           labelStyle={{ color: "#E74C3C" }}
@@ -218,15 +225,11 @@ const ProfileCard = ({
 };
 
 /* ── MenuItem reutilizable ── */
-const MenuItem = ({ icon, label, onPress, labelStyle, iconStyle }) => (
-  <TouchableOpacity
-    style={styles.menuItem}
-    onPress={onPress}
-    activeOpacity={0.6}
-  >
-    <Text style={[styles.menuIcon, iconStyle]}>{icon}</Text>
+const MenuItem = ({ icon, label, onPress, labelStyle }) => (
+  <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.6}>
+    <View style={styles.iconContainer}>{icon}</View>
     <Text style={[styles.menuLabel, labelStyle]}>{label}</Text>
-    <Text style={styles.chevron}>›</Text>
+    <Ionicons name="chevron-forward" size={20} color="#BDC3C7" />
   </TouchableOpacity>
 );
 
@@ -237,16 +240,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#F2F4F7",
   },
 
-  /* Header — color cambia por rol */
   header: {
     height: 160,
     alignItems: "center",
     justifyContent: "flex-end",
   },
-  header_usuario:  { backgroundColor: "#27AE60" },
-  header_admin:    { backgroundColor: "#2C6FE0" },
-  header_conductor:{ backgroundColor: "#E67E22" },
-
   avatarWrapper: {
     marginBottom: -44,
     borderRadius: 60,
@@ -258,13 +256,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
   },
-  avatar: { width: 88, height: 88, borderRadius: 44 },
-  avatarPlaceholder: { width: 88, height: 88, borderRadius: 44 },
-  avatar_usuario:   { backgroundColor: "#C0392B" },
-  avatar_admin:     { backgroundColor: "#1A3A8F" },
-  avatar_conductor: { backgroundColor: "#A04000" },
+  avatar: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+  },
+  avatarPlaceholder: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
-  /* Info */
   profileInfo: {
     alignItems: "center",
     marginTop: 54,
@@ -283,10 +287,16 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 20,
   },
-  badgeText: { fontSize: 13, fontWeight: "500" },
-  email: { marginTop: 8, fontSize: 14, color: "#7F8C8D" },
+  badgeText: {
+    fontSize: 13,
+    fontWeight: "500",
+  },
+  email: {
+    marginTop: 8,
+    fontSize: 14,
+    color: "#7F8C8D",
+  },
 
-  /* Secciones */
   sectionTitle: {
     fontSize: 13,
     fontWeight: "600",
@@ -313,29 +323,22 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
 
-  /* MenuItem */
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 18,
-    paddingVertical: 16,
+    paddingVertical: 14,
   },
-  menuIcon: {
-    fontSize: 20,
+  iconContainer: {
+    width: 30,
+    alignItems: "center",
     marginRight: 14,
-    width: 26,
-    textAlign: "center",
   },
   menuLabel: {
     flex: 1,
     fontSize: 15,
     color: "#2C3E50",
     fontWeight: "400",
-  },
-  chevron: {
-    fontSize: 22,
-    color: "#BDC3C7",
-    fontWeight: "300",
   },
 });
 
