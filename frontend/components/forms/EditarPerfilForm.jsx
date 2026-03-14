@@ -61,7 +61,6 @@ export default function EditarPerfilForm({
       aspect: [1, 1],
       quality: 0.7,
     });
-    console.log("Imagen seleccionada:", resultado.assets[0].uri);
     if (!resultado.canceled)
       actualizarCampo("avatar_url", resultado.assets[0].uri);
   };
@@ -245,7 +244,7 @@ export default function EditarPerfilForm({
   );
 }
 
-// CampoTexto reutilizable — usa tokens del theme directamente
+// CampoTexto reutilizable
 function CampoTexto({
   label,
   icono,

@@ -10,11 +10,11 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { BottomNavBar } from "../components/BottomNavBar";
+import { getProfile } from "../services/profileService"
+import { getCurrentUser } from "../services/auth";
 
 // ── Importa aquí los componentes de cada tab ──────────────────
 import EditarPerfilForm from "../components/forms/EditarPerfilForm";
-
-const ROL_ACTUAL = "usuario"; // cambia a 'usuario' o 'administrador' para probar
 
 export default function Home() {
   const [tabActivo, setTabActivo] = useState("inicio");
@@ -127,7 +127,7 @@ export default function Home() {
 
       {/* ── Navbar fijo abajo ───────────────────────────────── */}
       <BottomNavBar
-        rol={ROL_ACTUAL}
+        rol={perfil?.rol ?? 'usuario'}
         initialTab="inicio"
         onTabPress={(key) => setTabActivo(key)}
       />
