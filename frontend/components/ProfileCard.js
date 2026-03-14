@@ -6,8 +6,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import theme from "../constants/theme";
+
+const t = theme.lightMode;
 
 /**
  * ProfileCard Component
@@ -15,15 +20,14 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
  * Props:
  * - name: string
  * - email: string
- * - isActive: boolean
  * - avatarUri: string | null
- * - role: "usuario" | "admin" | "conductor"
+ * - role: "usuario" | "administrador" | "conductor"  ← valores exactos de Supabase (rol_tipo)
+ * - loading: boolean
  *
- * Handlers comunes:
- * - onTripHistory, onNotifications, onEditProfile
- * - onSettings, onChangePassword, onLogout
+ * Handlers comunes (todos los roles):
+ * - onTripHistory, onNotifications, onEditProfile, onSettings, onChangePassword, onLogout
  *
- * Solo admin:
+ * Solo administrador:
  * - onManageUsers, onReports, onManageRoutes
  *
  * Solo conductor:
@@ -32,67 +36,80 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 const ProfileCard = ({
   name = "Nombre",
-  email = "nombre@gmail.com",
-  isActive = true,
+  email = "correo@gmail.com",
   avatarUri = null,
   role = "usuario",
+  loading = false,
+  // Comunes
   onTripHistory,
   onNotifications,
   onEditProfile,
   onSettings,
   onChangePassword,
   onLogout,
-  // Admin
+  // Solo administrador
   onManageUsers,
   onReports,
   onManageRoutes,
-  // Conductor
+  // Solo conductor
   onMyVehicle,
   onAssignedRoutes,
   onToggleService,
   serviceActive = true,
 }) => {
+
+  // ── Config visual por rol (usa los enum exactos de Supabase) ──
   const roleConfig = {
     usuario: {
       label: "Usuario activo",
-      headerColor: "#27AE60",
-      badgeBg: "#E8F8EF",
-      badgeText: "#27AE60",
-      avatarBg: "#C0392B",
+      badgeBg: "#DCFCE7",
+      badgeText: "#16A34A",
     },
-    admin: {
+    administrador: {
       label: "Administrador",
-      headerColor: "#2C6FE0",
-      badgeBg: "#EAF0FB",
-      badgeText: "#2C6FE0",
-      avatarBg: "#1A3A8F",
+      badgeBg: "#DBEAFE",
+      badgeText: "#2563EB",
     },
     conductor: {
       label: "Conductor",
-      headerColor: "#E67E22",
-      badgeBg: "#FEF5E7",
-      badgeText: "#E67E22",
-      avatarBg: "#A04000",
+      badgeBg: "#FEF3C7",
+      badgeText: "#D97706",
     },
-  }[role];
+  }[role] ?? {
+    label: role,
+    badgeBg: "#F1F5F9",
+    badgeText: "#475569",
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={t.icon.active} />
+        <Text style={styles.loadingText}>Cargando perfil...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
 
-      {/* ── Header ── */}
-      <View style={[styles.header, { backgroundColor: roleConfig.headerColor }]}>
+      {/* ── Header con gradiente del tema ── */}
+      <LinearGradient
+        colors={t.Headers.gradientColors}
+        style={styles.header}
+      >
         <View style={styles.avatarWrapper}>
           {avatarUri ? (
             <Image source={{ uri: avatarUri }} style={styles.avatar} />
           ) : (
-            <View style={[styles.avatarPlaceholder, { backgroundColor: roleConfig.avatarBg }]}>
-              <Ionicons name="person" size={40} color="#fff" />
+            <View style={styles.avatarPlaceholder}>
+              <Ionicons name="person" size={42} color="#fff" />
             </View>
           )}
         </View>
-      </View>
+      </LinearGradient>
 
-      {/* ── Info ── */}
+      {/* ── Info del usuario ── */}
       <View style={styles.profileInfo}>
         <Text style={styles.name}>{name}</Text>
         <View style={[styles.badgeContainer, { backgroundColor: roleConfig.badgeBg }]}>
@@ -103,25 +120,25 @@ const ProfileCard = ({
         <Text style={styles.email}>{email}</Text>
       </View>
 
-      {/* ══ SOLO ADMIN ══ */}
-      {role === "admin" && (
+      {/* ══════════ SOLO ADMINISTRADOR ══════════ */}
+      {role === "administrador" && (
         <>
           <Text style={styles.sectionTitle}>Administración</Text>
           <View style={styles.card}>
             <MenuItem
-              icon={<Ionicons name="people" size={22} color="#2C6FE0" />}
+              icon={<Ionicons name="people-outline" size={22} color="#2563EB" />}
               label="Gestión de usuarios"
               onPress={onManageUsers}
             />
-            <View style={styles.divider} />
+            <Divider />
             <MenuItem
-              icon={<Ionicons name="bar-chart" size={22} color="#2C6FE0" />}
+              icon={<Ionicons name="bar-chart-outline" size={22} color="#2563EB" />}
               label="Reportes"
               onPress={onReports}
             />
-            <View style={styles.divider} />
+            <Divider />
             <MenuItem
-              icon={<MaterialCommunityIcons name="map-marker-path" size={22} color="#2C6FE0" />}
+              icon={<MaterialCommunityIcons name="map-marker-path" size={22} color="#2563EB" />}
               label="Gestión de rutas"
               onPress={onManageRoutes}
             />
@@ -129,23 +146,23 @@ const ProfileCard = ({
         </>
       )}
 
-      {/* ══ SOLO CONDUCTOR ══ */}
+      {/* ══════════ SOLO CONDUCTOR ══════════ */}
       {role === "conductor" && (
         <>
           <Text style={styles.sectionTitle}>Mi servicio</Text>
           <View style={styles.card}>
             <MenuItem
-              icon={<Ionicons name="bus" size={22} color="#E67E22" />}
+              icon={<Ionicons name="bus-outline" size={22} color="#D97706" />}
               label="Mi vehículo"
               onPress={onMyVehicle}
             />
-            <View style={styles.divider} />
+            <Divider />
             <MenuItem
-              icon={<MaterialCommunityIcons name="map-marker-path" size={22} color="#E67E22" />}
+              icon={<MaterialCommunityIcons name="map-marker-path" size={22} color="#D97706" />}
               label="Rutas asignadas"
               onPress={onAssignedRoutes}
             />
-            <View style={styles.divider} />
+            <Divider />
             <TouchableOpacity
               style={styles.menuItem}
               onPress={onToggleService}
@@ -153,95 +170,113 @@ const ProfileCard = ({
             >
               <View style={styles.iconContainer}>
                 <Ionicons
-                  name={serviceActive ? "radio-button-on" : "radio-button-off"}
+                  name={serviceActive ? "checkmark-circle-outline" : "close-circle-outline"}
                   size={22}
-                  color={serviceActive ? "#27AE60" : "#E74C3C"}
+                  color={serviceActive ? t.icon.active : t.icon.error}
                 />
               </View>
               <Text style={styles.menuLabel}>
                 Estado:{" "}
-                <Text style={{ color: serviceActive ? "#27AE60" : "#E74C3C", fontWeight: "600" }}>
+                <Text style={{
+                  color: serviceActive ? t.icon.active : t.icon.error,
+                  fontFamily: t.fonts?.medium,
+                  fontWeight: "600",
+                }}>
                   {serviceActive ? "En servicio" : "Fuera de servicio"}
                 </Text>
               </Text>
-              <Ionicons name="chevron-forward" size={20} color="#BDC3C7" />
+              <Ionicons name="chevron-forward" size={20} color={t.icon.default} />
             </TouchableOpacity>
           </View>
         </>
       )}
 
-      {/* ══ ACTIVIDAD — todos los roles ══ */}
+      {/* ══════════ ACTIVIDAD — todos los roles ══════════ */}
       <Text style={styles.sectionTitle}>Actividad</Text>
       <View style={styles.card}>
         <MenuItem
-          icon={<Ionicons name="bus" size={22} color="#27AE60" />}
+          icon={<Ionicons name="bus-outline" size={22} color={t.icon.active} />}
           label="Historial de viajes"
           onPress={onTripHistory}
         />
-        <View style={styles.divider} />
+        <Divider />
         <MenuItem
-          icon={<Ionicons name="notifications" size={22} color="#F5A623" />}
+          icon={<Ionicons name="notifications-outline" size={22} color={t.icon.alert} />}
           label="Notificaciones"
           onPress={onNotifications}
         />
       </View>
 
-      {/* ══ CUENTA — todos los roles ══ */}
+      {/* ══════════ CUENTA — todos los roles ══════════ */}
       <Text style={styles.sectionTitle}>Cuenta</Text>
       <View style={styles.card}>
         <MenuItem
-          icon={<Ionicons name="person-circle" size={22} color="#27AE60" />}
+          icon={<Ionicons name="person-outline" size={22} color={t.icon.active} />}
           label="Editar perfil"
           onPress={onEditProfile}
         />
-        <View style={styles.divider} />
+        <Divider />
         <MenuItem
-          icon={<Ionicons name="settings" size={22} color="#7F8C8D" />}
+          icon={<Ionicons name="settings-outline" size={22} color={t.icon.default} />}
           label="Configuración"
           onPress={onSettings}
         />
       </View>
 
-      {/* ══ SEGURIDAD — todos los roles ══ */}
+      {/* ══════════ SEGURIDAD — todos los roles ══════════ */}
       <Text style={styles.sectionTitle}>Seguridad</Text>
       <View style={styles.card}>
         <MenuItem
-          icon={<Ionicons name="lock-closed" size={22} color="#27AE60" />}
+          icon={<Ionicons name="lock-closed-outline" size={22} color={t.icon.active} />}
           label="Cambiar contraseña"
           onPress={onChangePassword}
         />
-        <View style={styles.divider} />
+        <Divider />
         <MenuItem
-          icon={<MaterialCommunityIcons name="logout" size={22} color="#E74C3C" />}
+          icon={<MaterialCommunityIcons name="logout" size={22} color={t.icon.error} />}
           label="Cerrar sesión"
           onPress={onLogout}
-          labelStyle={{ color: "#E74C3C" }}
+          labelStyle={{ color: t.icon.error }}
         />
       </View>
 
-      <View style={{ height: 30 }} />
+      <View style={{ height: 32 }} />
     </ScrollView>
   );
 };
 
-/* ── MenuItem reutilizable ── */
+/* ── Componentes internos ── */
 const MenuItem = ({ icon, label, onPress, labelStyle }) => (
   <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.6}>
     <View style={styles.iconContainer}>{icon}</View>
     <Text style={[styles.menuLabel, labelStyle]}>{label}</Text>
-    <Ionicons name="chevron-forward" size={20} color="#BDC3C7" />
+    <Ionicons name="chevron-forward" size={20} color={t.icon.default} />
   </TouchableOpacity>
 );
 
-/* ── Estilos ── */
+const Divider = () => <View style={styles.divider} />;
+
+/* ── Estilos usando theme ── */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F2F4F7",
+    backgroundColor: t.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: t.background,
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: t.text.secondary,
   },
 
+  // Header
   header: {
-    height: 160,
+    height: 170,
     alignItems: "center",
     justifyContent: "flex-end",
   },
@@ -249,12 +284,8 @@ const styles = StyleSheet.create({
     marginBottom: -44,
     borderRadius: 60,
     borderWidth: 4,
-    borderColor: "#fff",
-    elevation: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    borderColor: t.cards.background,
+    ...theme.shadows?.card,
   },
   avatar: {
     width: 88,
@@ -265,20 +296,22 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
+    backgroundColor: "#15803D",
     alignItems: "center",
     justifyContent: "center",
   },
 
+  // Info
   profileInfo: {
     alignItems: "center",
-    marginTop: 54,
+    marginTop: 56,
     marginBottom: 20,
     paddingHorizontal: 24,
   },
   name: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#1A1A2E",
+    color: t.text.primary,
     letterSpacing: 0.3,
   },
   badgeContainer: {
@@ -294,35 +327,35 @@ const styles = StyleSheet.create({
   email: {
     marginTop: 8,
     fontSize: 14,
-    color: "#7F8C8D",
+    color: t.text.tertiary,
   },
 
+  // Secciones
   sectionTitle: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#7F8C8D",
+    color: t.text.secondary,
     marginTop: 20,
     marginBottom: 8,
     marginHorizontal: 20,
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
   },
   card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
+    backgroundColor: t.cards.background,
+    borderRadius: t.cards.borderRadius,
     marginHorizontal: 16,
     paddingVertical: 4,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: t.cards.border,
+    ...theme.shadows?.card,
   },
   divider: {
     height: 1,
-    backgroundColor: "#F0F0F0",
+    backgroundColor: t.cards.border,
     marginHorizontal: 16,
   },
 
+  // MenuItem
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -337,7 +370,7 @@ const styles = StyleSheet.create({
   menuLabel: {
     flex: 1,
     fontSize: 15,
-    color: "#2C3E50",
+    color: t.text.primary,
     fontWeight: "400",
   },
 });
