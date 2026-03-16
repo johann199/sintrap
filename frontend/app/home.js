@@ -10,16 +10,17 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { BottomNavBar } from "../components/BottomNavBar";
-import { getCurrentUser } from "../services/auth";
+import Header from "../components/Header";
 import { getProfile } from "../services/profileService";
-import { supabase } from "../services/supabase";
- 
+import { getCurrentUser } from "../services/auth";
+
 // ── Importa aquí los componentes de cada tab ──────────────────
 import EditarPerfilForm from "../components/forms/EditarPerfilForm";
-import ProfileCard from "../components/ProfileCard";
- 
-const ROL_ACTUAL = "usuario"; // cambia a 'usuario' o 'administrador' para probar
- 
+import ProfileCard from "../components/ProfileCard";          // ← agregado
+import ConductoresScreen from "./(admin)/conductores";
+import RegistrarVehiculo from "./(admin)/registrar-vehiculo";
+import { supabase } from "../services/supabase";
+
 export default function Home() {
   const [tabActivo, setTabActivo] = useState("inicio");
  
@@ -29,11 +30,32 @@ export default function Home() {
   const [cargando,      setCargando]      = useState(true);
   const [serviceActive, setServiceActive] = useState(true);
  
-  // Cargar usuario y perfil al iniciar la app
   useEffect(() => {
     cargarPerfil();
   }, []);
- 
+
+  const HEADER_CONFIGS = {
+    usuario: {
+      inicio:    { titulo: `Hola ${perfil?.nombre ?? 'Usuario'}`, subtitulo: '¿a donde vamos hoy?'},
+      favoritos: { titulo: "Mis Favoritos" },
+      rutas:     { titulo: "Rutas" },
+      perfil:    { titulo: "Mi Perfil" },
+    },
+    administrador: {
+      inicio:   { titulo: "Panel Administrativo", subtitulo: "Gestion rutas y buses" },
+      rutas:    { titulo: "Gestion de rutas", subtitulo: "Administrar las rutas del sistema"},
+      crear:    { titulo: "Crear Ruta", subtitulo: "Gestion de rutas" },
+      buses:    { titulo: "Buses", subtitulo: "Gestion de buses" },
+      graficas: { titulo: "Estadisticas", subtitulo: "Actividad del sistema" },
+    },
+    conductor: {
+      inicio:   { titulo: "Panel conductor"},
+      rutas:    { titulo: "Gestion de rutas" },
+      crear:    { titulo: "Crear Ruta" },
+      buses:    { titulo: "Buses" },
+    }
+  };
+
   const cargarPerfil = async () => {
     try {
       const { data: authData } = await getCurrentUser();
@@ -52,99 +74,135 @@ export default function Home() {
       setCargando(false);
     }
   };
- 
-  // ✅ Merge de los datos actualizados con el perfil existente
-  // Así el header y ProfileCard se actualizan en tiempo real
+
+  // ✅ Actualiza el perfil en tiempo real con merge
   const handleGuardado = (actualizado) => {
-  console.log("DATOS:", JSON.stringify(actualizado));
-  if (actualizado) {
-    setPerfil((prev) => ({ ...prev, ...actualizado }));
-  } else {
-    cargarPerfil();
-  }
-};
- 
+    if (actualizado) {
+      setPerfil((prev) => ({ ...prev, ...actualizado }));
+    } else {
+      cargarPerfil();
+    }
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
- 
+
+  // ── Contenido por ROL + TAB ──────────────────────────────────
+  const CONTENIDO = {
+
+    // ── ADMINISTRADOR ──
+    administrador: {
+      inicio:   () => <ConductoresScreen />,
+      rutas:    () => <TabPendiente nombre="Gestión de rutas" icono="map-outline" />,
+      crear:    () => <TabPendiente nombre="Crear ruta" icono="add-circle-outline" />,
+      buses:    () => <RegistrarVehiculo nombre="Buses" icono="bus" />,
+      graficas: () => <TabPendiente nombre="Estadísticas" icono="bar-chart-outline" />,
+      // ✅ Perfil → ProfileCard que abre EditarPerfilForm internamente
+      perfil:   () => (
+        <ProfileCard
+          name={perfil?.nombre ?? ""}
+          email={userEmail}
+          avatarUri={perfil?.avatar_url ?? null}
+          role={perfil?.rol ?? "administrador"}
+          isActive={perfil?.activo ?? true}
+          loading={false}
+          perfilInicial={perfil}
+          userId={userId}
+          onGuardado={handleGuardado}
+          onTripHistory={() => console.log("Historial")}
+          onNotifications={() => console.log("Notificaciones")}
+          onSettings={() => console.log("Configuración")}
+          onChangePassword={() => console.log("Cambiar contraseña")}
+          onLogout={handleLogout}
+          onManageUsers={() => console.log("Gestión usuarios")}
+          onReports={() => console.log("Reportes")}
+          onManageRoutes={() => console.log("Gestión rutas")}
+        />
+      ),
+    },
+
+    // ── CONDUCTOR ──
+    conductor: {
+      inicio:  () => (
+        <LinearGradient colors={["#2D6A2D", "#A8D5A2", "#e8f5e9"]} style={styles.gradient}>
+          <TouchableOpacity style={styles.alertBtn}>
+            <Ionicons name="notifications" size={16} color="#fff" style={{ marginRight: 8 }} />
+            <Text style={styles.alertText}>Avisarme cuando el bus este cerca</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      ),
+      rutas:   () => <TabPendiente nombre="Mi Ruta" icono="navigate-outline" />,
+      agregar: () => <TabPendiente nombre="Reportar incidente" icono="warning-outline" />,
+      bus:     () => <TabPendiente nombre="Buses" icono="bus" />,
+      // ✅ Perfil → ProfileCard que abre EditarPerfilForm internamente
+      perfil:  () => (
+        <ProfileCard
+          name={perfil?.nombre ?? ""}
+          email={userEmail}
+          avatarUri={perfil?.avatar_url ?? null}
+          role={perfil?.rol ?? "conductor"}
+          isActive={perfil?.activo ?? true}
+          loading={false}
+          perfilInicial={perfil}
+          userId={userId}
+          onGuardado={handleGuardado}
+          onTripHistory={() => console.log("Historial")}
+          onNotifications={() => console.log("Notificaciones")}
+          onSettings={() => console.log("Configuración")}
+          onChangePassword={() => console.log("Cambiar contraseña")}
+          onLogout={handleLogout}
+          onMyVehicle={() => console.log("Mi vehículo")}
+          onAssignedRoutes={() => console.log("Rutas asignadas")}
+          serviceActive={serviceActive}
+          onToggleService={() => setServiceActive((prev) => !prev)}
+        />
+      ),
+    },
+
+    // ── USUARIO ──
+    usuario: {
+      inicio:    () => (
+        <LinearGradient colors={["#2D6A2D", "#A8D5A2", "#e8f5e9"]} style={styles.gradient}>
+          <TouchableOpacity style={styles.alertBtn}>
+            <Ionicons name="notifications" size={16} color="#fff" style={{ marginRight: 8 }} />
+            <Text style={styles.alertText}>Avisarme cuando el bus este cerca</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      ),
+      favoritos: () => <TabPendiente nombre="Favoritos" icono="heart-outline" />,
+      rutas:     () => <TabPendiente nombre="Rutas" icono="location-outline" />,
+      // ✅ Perfil → ProfileCard que abre EditarPerfilForm internamente
+      perfil:    () => (
+        <ProfileCard
+          name={perfil?.nombre ?? ""}
+          email={userEmail}
+          avatarUri={perfil?.avatar_url ?? null}
+          role={perfil?.rol ?? "usuario"}
+          isActive={perfil?.activo ?? true}
+          loading={false}
+          perfilInicial={perfil}
+          userId={userId}
+          onGuardado={handleGuardado}
+          onTripHistory={() => console.log("Historial")}
+          onNotifications={() => console.log("Notificaciones")}
+          onSettings={() => console.log("Configuración")}
+          onChangePassword={() => console.log("Cambiar contraseña")}
+          onLogout={handleLogout}
+        />
+      ),
+    },
+  };
+
   const renderContenido = () => {
-    switch (tabActivo) {
-      case "inicio":
-        return (
-          <LinearGradient
-            colors={["#2D6A2D", "#A8D5A2", "#e8f5e9"]}
-            style={styles.gradient}
-          >
-            <TouchableOpacity style={styles.alertBtn}>
-              <Ionicons
-                name="notifications"
-                size={16}
-                color="#fff"
-                style={{ marginRight: 8 }}
-              />
-              <Text style={styles.alertText}>
-                Avisarme cuando el bus este cerca
-              </Text>
-            </TouchableOpacity>
-          </LinearGradient>
-        );
- 
-      // Tab "Mi Bus" del conductor → formulario de editar perfil
-      case "bus":
-        return (
-          <EditarPerfilForm
-            perfilInicial={perfil}
-            userId={userId}
-            onGuardado={handleGuardado}
-          />
-        );
- 
-      case "rutas":
-        return <TabPendiente nombre="Rutas" icono="navigate-outline" />;
- 
-      case "agregar":
-        return <TabPendiente nombre="Reportar" icono="add-circle-outline" />;
- 
-      case "favoritos":
-        return <TabPendiente nombre="Favoritos" icono="heart-outline" />;
- 
-      // ── Tab Perfil → ProfileCard (los 3 roles) ──────────────
-      case "perfil":
-        return (
-          <ProfileCard
-            name={perfil?.nombre ?? ""}
-            email={userEmail}
-            avatarUri={perfil?.avatar_url ?? null}
-            role={perfil?.rol ?? "usuario"}
-            isActive={perfil?.activo ?? true}
-            loading={false}
-            perfilInicial={perfil}
-            userId={userId}
-            onGuardado={handleGuardado}
-            onTripHistory={() => console.log("Historial")}
-            onNotifications={() => console.log("Notificaciones")}
-            onSettings={() => console.log("Configuración")}
-            onChangePassword={() => console.log("Cambiar contraseña")}
-            onLogout={handleLogout}
-            // Solo administrador
-            onManageUsers={() => console.log("Gestión usuarios")}
-            onReports={() => console.log("Reportes")}
-            onManageRoutes={() => console.log("Gestión rutas")}
-            // Solo conductor
-            onMyVehicle={() => console.log("Mi vehículo")}
-            onAssignedRoutes={() => console.log("Rutas asignadas")}
-            serviceActive={serviceActive}
-            onToggleService={() => setServiceActive((prev) => !prev)}
-          />
-        );
- 
-      default:
-        return <TabPendiente nombre={tabActivo} icono="construct-outline" />;
-    }
+    const rol = perfil?.rol ?? "usuario";
+    const tabsDelRol = CONTENIDO[rol] ?? CONTENIDO.usuario;
+    const componente = tabsDelRol[tabActivo];
+    return componente
+      ? componente()
+      : <TabPendiente nombre={tabActivo} icono="construct-outline" />;
   };
  
-  // Miestras carga, Muestra spinner en vez del header
   if (cargando) {
     return (
       <View style={styles.centrado}>
@@ -156,21 +214,27 @@ export default function Home() {
   return (
     <View style={styles.container}>
       {/* ── Header fijo (siempre visible) ──────────────────── */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Hola {perfil?.nombre?.split(' ')[0] ?? 'Usuario'}</Text>
-        <Text style={styles.headerSub}>
-          {tabActivo === "inicio"
-            ? "¿A dónde vamos hoy?"
-            : obtenerSubtitulo(tabActivo)}
-        </Text>
-      </View>
- 
+      {tabActivo !== 'perfil' && (
+        <Header
+          titulo={HEADER_CONFIGS[perfil?.rol ?? 'usuario'][tabActivo]?.titulo ?? "Inicio"}
+          subtitulo={HEADER_CONFIGS[perfil?.rol ?? 'usuario'][tabActivo]?.subtitulo ?? ""}
+          mode="light"
+          iconoDerecha={
+            perfil?.rol === 'administrador' || perfil?.rol === 'conductor' ? (
+              <TouchableOpacity onPress={() => setTabActivo('perfil')}>
+                <Ionicons name="person-circle-outline" size={36} color="#fff" style={{ marginTop: -25 }} />
+              </TouchableOpacity>
+            ) : null
+          }
+        />
+      )}
+
       {/* ── Área de contenido (cambia según el tab) ─────────── */}
       <View style={styles.contenido}>{renderContenido()}</View>
- 
+
       {/* ── Navbar fijo abajo ───────────────────────────────── */}
       <BottomNavBar
-        rol={ROL_ACTUAL}
+        rol={perfil?.rol ?? 'usuario'}
         initialTab="inicio"
         onTabPress={(key) => setTabActivo(key)}
       />
@@ -178,7 +242,6 @@ export default function Home() {
   );
 }
  
-// Subtítulo del header según tab activo
 function obtenerSubtitulo(tab) {
   const subtitulos = {
     bus:       "Tu información personal",
@@ -190,7 +253,6 @@ function obtenerSubtitulo(tab) {
   return subtitulos[tab] ?? "";
 }
  
-// Placeholder para tabs en desarrollo
 function TabPendiente({ nombre, icono }) {
   return (
     <View style={styles.pendiente}>
@@ -223,7 +285,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   contenido: {
-    flex: 1, // ocupa todo el espacio entre header y navbar
+    flex: 1,
   },
   gradient: {
     flex: 1,
@@ -259,5 +321,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#D1D5DB",
   },
-  centrado:    {flex: 1, backgroundColor: "#fff", justifyContent: "center"},
+  centrado: { flex: 1, backgroundColor: "#fff", justifyContent: "center" },
 });

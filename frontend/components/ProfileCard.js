@@ -111,7 +111,7 @@ const ProfileCard = ({
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
  
-      <LinearGradient colors={t.Headers.gradientColors} style={styles.header}>
+      <LinearGradient colors={t.Headers?.gradientColors ?? ["#16A34A", "#22C55E"]} style={styles.header}>
         <View style={styles.avatarWrapper}>
           {avatarUri ? (
             <Image source={{ uri: avatarUri }} style={styles.avatar} />
