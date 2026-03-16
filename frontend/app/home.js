@@ -10,42 +10,64 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { BottomNavBar } from "../components/BottomNavBar";
-
+import { getCurrentUser } from "../services/auth";
+import { getProfile } from "../services/profileService";
+import { supabase } from "../services/supabase";
+ 
 // ── Importa aquí los componentes de cada tab ──────────────────
 import EditarPerfilForm from "../components/forms/EditarPerfilForm";
-
+import ProfileCard from "../components/ProfileCard";
+ 
 const ROL_ACTUAL = "usuario"; // cambia a 'usuario' o 'administrador' para probar
-
+ 
 export default function Home() {
   const [tabActivo, setTabActivo] = useState("inicio");
-
-  const [perfil,   setPerfil]   = useState(null);
-  const [userId,   setUserId]   = useState(null);
-  const [cargando, setCargando] = useState(true);
-
+ 
+  const [perfil,        setPerfil]        = useState(null);
+  const [userId,        setUserId]        = useState(null);
+  const [userEmail,     setUserEmail]     = useState("");
+  const [cargando,      setCargando]      = useState(true);
+  const [serviceActive, setServiceActive] = useState(true);
+ 
   // Cargar usuario y perfil al iniciar la app
   useEffect(() => {
     cargarPerfil();
   }, []);
-
+ 
   const cargarPerfil = async () => {
     try {
       const { data: authData } = await getCurrentUser();
       const user = authData?.user;
       if (!user) return;
-
+ 
       setUserId(user.id);
-
+      setUserEmail(user.email ?? "");
+ 
       const { data: perfilData } = await getProfile(user.id);
       if (perfilData) setPerfil(perfilData);
-
+ 
     } catch (e) {
       console.error('Error cargando perfil:', e.message);
     } finally {
       setCargando(false);
     }
   };
-
+ 
+  // ✅ Merge de los datos actualizados con el perfil existente
+  // Así el header y ProfileCard se actualizan en tiempo real
+  const handleGuardado = (actualizado) => {
+  console.log("DATOS:", JSON.stringify(actualizado));
+  if (actualizado) {
+    setPerfil((prev) => ({ ...prev, ...actualizado }));
+  } else {
+    cargarPerfil();
+  }
+};
+ 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+ 
   const renderContenido = () => {
     switch (tabActivo) {
       case "inicio":
@@ -67,40 +89,61 @@ export default function Home() {
             </TouchableOpacity>
           </LinearGradient>
         );
-
+ 
       // Tab "Mi Bus" del conductor → formulario de editar perfil
       case "bus":
         return (
           <EditarPerfilForm
             perfilInicial={perfil}
             userId={userId}
-            onGuardado={(actualizado) => console.log("Guardado:", actualizado)}
+            onGuardado={handleGuardado}
           />
         );
-
+ 
       case "rutas":
         return <TabPendiente nombre="Rutas" icono="navigate-outline" />;
-
+ 
       case "agregar":
         return <TabPendiente nombre="Reportar" icono="add-circle-outline" />;
-
+ 
       case "favoritos":
         return <TabPendiente nombre="Favoritos" icono="heart-outline" />;
-
+ 
+      // ── Tab Perfil → ProfileCard (los 3 roles) ──────────────
       case "perfil":
         return (
-          <EditarPerfilForm
+          <ProfileCard
+            name={perfil?.nombre ?? ""}
+            email={userEmail}
+            avatarUri={perfil?.avatar_url ?? null}
+            role={perfil?.rol ?? "usuario"}
+            isActive={perfil?.activo ?? true}
+            loading={false}
             perfilInicial={perfil}
             userId={userId}
-            onGuardado={(actualizado) => console.log("Guardado:", actualizado)}
+            onGuardado={handleGuardado}
+            onTripHistory={() => console.log("Historial")}
+            onNotifications={() => console.log("Notificaciones")}
+            onSettings={() => console.log("Configuración")}
+            onChangePassword={() => console.log("Cambiar contraseña")}
+            onLogout={handleLogout}
+            // Solo administrador
+            onManageUsers={() => console.log("Gestión usuarios")}
+            onReports={() => console.log("Reportes")}
+            onManageRoutes={() => console.log("Gestión rutas")}
+            // Solo conductor
+            onMyVehicle={() => console.log("Mi vehículo")}
+            onAssignedRoutes={() => console.log("Rutas asignadas")}
+            serviceActive={serviceActive}
+            onToggleService={() => setServiceActive((prev) => !prev)}
           />
         );
-
+ 
       default:
         return <TabPendiente nombre={tabActivo} icono="construct-outline" />;
     }
   };
-
+ 
   // Miestras carga, Muestra spinner en vez del header
   if (cargando) {
     return (
@@ -109,7 +152,7 @@ export default function Home() {
       </View>
     );
   }
-
+ 
   return (
     <View style={styles.container}>
       {/* ── Header fijo (siempre visible) ──────────────────── */}
@@ -121,10 +164,10 @@ export default function Home() {
             : obtenerSubtitulo(tabActivo)}
         </Text>
       </View>
-
+ 
       {/* ── Área de contenido (cambia según el tab) ─────────── */}
       <View style={styles.contenido}>{renderContenido()}</View>
-
+ 
       {/* ── Navbar fijo abajo ───────────────────────────────── */}
       <BottomNavBar
         rol={ROL_ACTUAL}
@@ -134,19 +177,19 @@ export default function Home() {
     </View>
   );
 }
-
+ 
 // Subtítulo del header según tab activo
 function obtenerSubtitulo(tab) {
   const subtitulos = {
-    bus: "Tu información personal",
-    rutas: "Tu ruta asignada",
-    agregar: "Reportar un incidente",
-    perfil: "Tu información personal",
+    bus:       "Tu información personal",
+    rutas:     "Tu ruta asignada",
+    agregar:   "Reportar un incidente",
+    perfil:    "Tu información personal",
     favoritos: "Tus rutas favoritas",
   };
   return subtitulos[tab] ?? "";
 }
-
+ 
 // Placeholder para tabs en desarrollo
 function TabPendiente({ nombre, icono }) {
   return (
@@ -157,7 +200,7 @@ function TabPendiente({ nombre, icono }) {
     </View>
   );
 }
-
+ 
 const styles = StyleSheet.create({
   container: {
     flex: 1,

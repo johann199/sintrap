@@ -22,7 +22,7 @@ import {
   actualizarPerfil,
   subirFotoPerfil,
 } from "../../services/profile.service";
-import { updateProfile } from "../../services/profile.service";
+import { updateProfile } from "../../services/profileService";
 
 const COLORS = {
   primary: "#1B4FD8", // Azul principal
