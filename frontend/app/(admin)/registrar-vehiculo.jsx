@@ -3,8 +3,9 @@ import { View, Text, Switch, StyleSheet, Modal,
          TouchableOpacity, FlatList, ActivityIndicator, 
          Alert, ScrollView } from 'react-native';
 import { router } from 'expo-router';
-import Button from '../../components/Button';
+import Button from '../../components/Button.js';
 import Input from '../../components/Input';
+ 
 import { getProfile } from '../../services/profileService';
 import { getCurrentUser } from '../../services/auth';
 import { getAvailableDrivers, registerVehicle } from '../../services/vehicleService';
