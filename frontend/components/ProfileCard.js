@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,43 +7,36 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  Platform,
 } from "react-native";
-import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import theme from "../constants/theme";
-
+import EditarPerfilForm from "./forms/EditarPerfilForm";
+ 
 const t = theme.lightMode;
-
-/**
- * ProfileCard Component
- *
- * Props:
- * - name: string
- * - email: string
- * - avatarUri: string | null
- * - role: "usuario" | "administrador" | "conductor"  ← valores exactos de Supabase (rol_tipo)
- * - loading: boolean
- *
- * Handlers comunes (todos los roles):
- * - onTripHistory, onNotifications, onEditProfile, onSettings, onChangePassword, onLogout
- *
- * Solo administrador:
- * - onManageUsers, onReports, onManageRoutes
- *
- * Solo conductor:
- * - onMyVehicle, onAssignedRoutes, onToggleService, serviceActive
- */
-
+ 
+const cardShadow = {
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.08,
+  shadowRadius: 8,
+  elevation: 4,
+};
+ 
 const ProfileCard = ({
   name = "Nombre",
-  email = "correo@gmail.com",
+  email = "",
   avatarUri = null,
   role = "usuario",
   loading = false,
+  isActive = true,
+  perfilInicial = null,
+  userId = null,
+  onGuardado,           // ← recibe el handler de home.js
   // Comunes
   onTripHistory,
   onNotifications,
-  onEditProfile,
   onSettings,
   onChangePassword,
   onLogout,
@@ -57,11 +50,12 @@ const ProfileCard = ({
   onToggleService,
   serviceActive = true,
 }) => {
-
-  // ── Config visual por rol (usa los enum exactos de Supabase) ──
+ 
+  const [mostrarEditar, setMostrarEditar] = useState(false);
+ 
   const roleConfig = {
     usuario: {
-      label: "Usuario activo",
+      label: isActive ? "Usuario activo" : "Usuario inactivo",
       badgeBg: "#DCFCE7",
       badgeText: "#16A34A",
     },
@@ -80,7 +74,7 @@ const ProfileCard = ({
     badgeBg: "#F1F5F9",
     badgeText: "#475569",
   };
-
+ 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -89,15 +83,35 @@ const ProfileCard = ({
       </View>
     );
   }
-
+ 
+  if (mostrarEditar) {
+    return (
+      <View style={{ flex: 1 }}>
+        <TouchableOpacity
+          style={styles.volverBtn}
+          onPress={() => setMostrarEditar(false)}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back-outline" size={22} color={t.text.primary} />
+          <Text style={styles.volverTexto}>Volver al perfil</Text>
+        </TouchableOpacity>
+ 
+        <EditarPerfilForm
+          perfilInicial={perfilInicial}
+          userId={userId}
+          onGuardado={(actualizado) => {
+            onGuardado?.(actualizado); // ✅ sube los datos a home.js → actualiza en tiempo real
+            setMostrarEditar(false);   // ✅ vuelve a la vista del perfil
+          }}
+        />
+      </View>
+    );
+  }
+ 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-
-      {/* ── Header con gradiente del tema ── */}
-      <LinearGradient
-        colors={t.Headers.gradientColors}
-        style={styles.header}
-      >
+ 
+      <LinearGradient colors={t.Headers?.gradientColors ?? ["#16A34A", "#22C55E"]} style={styles.header}>
         <View style={styles.avatarWrapper}>
           {avatarUri ? (
             <Image source={{ uri: avatarUri }} style={styles.avatar} />
@@ -108,8 +122,7 @@ const ProfileCard = ({
           )}
         </View>
       </LinearGradient>
-
-      {/* ── Info del usuario ── */}
+ 
       <View style={styles.profileInfo}>
         <Text style={styles.name}>{name}</Text>
         <View style={[styles.badgeContainer, { backgroundColor: roleConfig.badgeBg }]}>
@@ -117,10 +130,10 @@ const ProfileCard = ({
             {roleConfig.label}
           </Text>
         </View>
-        <Text style={styles.email}>{email}</Text>
+        {email ? <Text style={styles.email}>{email}</Text> : null}
       </View>
-
-      {/* ══════════ SOLO ADMINISTRADOR ══════════ */}
+ 
+      {/* ══ SOLO ADMINISTRADOR ══ */}
       {role === "administrador" && (
         <>
           <Text style={styles.sectionTitle}>Administración</Text>
@@ -145,8 +158,8 @@ const ProfileCard = ({
           </View>
         </>
       )}
-
-      {/* ══════════ SOLO CONDUCTOR ══════════ */}
+ 
+      {/* ══ SOLO CONDUCTOR ══ */}
       {role === "conductor" && (
         <>
           <Text style={styles.sectionTitle}>Mi servicio</Text>
@@ -177,11 +190,7 @@ const ProfileCard = ({
               </View>
               <Text style={styles.menuLabel}>
                 Estado:{" "}
-                <Text style={{
-                  color: serviceActive ? t.icon.active : t.icon.error,
-                  fontFamily: t.fonts?.medium,
-                  fontWeight: "600",
-                }}>
+                <Text style={{ color: serviceActive ? t.icon.active : t.icon.error, fontWeight: "600" }}>
                   {serviceActive ? "En servicio" : "Fuera de servicio"}
                 </Text>
               </Text>
@@ -190,8 +199,8 @@ const ProfileCard = ({
           </View>
         </>
       )}
-
-      {/* ══════════ ACTIVIDAD — todos los roles ══════════ */}
+ 
+      {/* ══ ACTIVIDAD — todos los roles ══ */}
       <Text style={styles.sectionTitle}>Actividad</Text>
       <View style={styles.card}>
         <MenuItem
@@ -206,14 +215,14 @@ const ProfileCard = ({
           onPress={onNotifications}
         />
       </View>
-
-      {/* ══════════ CUENTA — todos los roles ══════════ */}
+ 
+      {/* ══ CUENTA — todos los roles ══ */}
       <Text style={styles.sectionTitle}>Cuenta</Text>
       <View style={styles.card}>
         <MenuItem
           icon={<Ionicons name="person-outline" size={22} color={t.icon.active} />}
           label="Editar perfil"
-          onPress={onEditProfile}
+          onPress={() => setMostrarEditar(true)}
         />
         <Divider />
         <MenuItem
@@ -222,8 +231,8 @@ const ProfileCard = ({
           onPress={onSettings}
         />
       </View>
-
-      {/* ══════════ SEGURIDAD — todos los roles ══════════ */}
+ 
+      {/* ══ SEGURIDAD — todos los roles ══ */}
       <Text style={styles.sectionTitle}>Seguridad</Text>
       <View style={styles.card}>
         <MenuItem
@@ -239,13 +248,12 @@ const ProfileCard = ({
           labelStyle={{ color: t.icon.error }}
         />
       </View>
-
+ 
       <View style={{ height: 32 }} />
     </ScrollView>
   );
 };
-
-/* ── Componentes internos ── */
+ 
 const MenuItem = ({ icon, label, onPress, labelStyle }) => (
   <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.6}>
     <View style={styles.iconContainer}>{icon}</View>
@@ -253,10 +261,9 @@ const MenuItem = ({ icon, label, onPress, labelStyle }) => (
     <Ionicons name="chevron-forward" size={20} color={t.icon.default} />
   </TouchableOpacity>
 );
-
+ 
 const Divider = () => <View style={styles.divider} />;
-
-/* ── Estilos usando theme ── */
+ 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -273,8 +280,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: t.text.secondary,
   },
-
-  // Header
+  volverBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    paddingTop: Platform.OS === "ios" ? 54 : 44,
+    backgroundColor: t.background,
+  },
+  volverTexto: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: t.text.primary,
+  },
   header: {
     height: 170,
     alignItems: "center",
@@ -285,13 +304,9 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     borderWidth: 4,
     borderColor: t.cards.background,
-    ...theme.shadows?.card,
+    ...cardShadow,
   },
-  avatar: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-  },
+  avatar: { width: 88, height: 88, borderRadius: 44 },
   avatarPlaceholder: {
     width: 88,
     height: 88,
@@ -300,8 +315,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
-  // Info
   profileInfo: {
     alignItems: "center",
     marginTop: 56,
@@ -320,17 +333,8 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 20,
   },
-  badgeText: {
-    fontSize: 13,
-    fontWeight: "500",
-  },
-  email: {
-    marginTop: 8,
-    fontSize: 14,
-    color: t.text.tertiary,
-  },
-
-  // Secciones
+  badgeText: { fontSize: 13, fontWeight: "500" },
+  email: { marginTop: 8, fontSize: 14, color: t.text.tertiary },
   sectionTitle: {
     fontSize: 13,
     fontWeight: "600",
@@ -347,15 +351,13 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderWidth: 1,
     borderColor: t.cards.border,
-    ...theme.shadows?.card,
+    ...cardShadow,
   },
   divider: {
     height: 1,
     backgroundColor: t.cards.border,
     marginHorizontal: 16,
   },
-
-  // MenuItem
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -374,5 +376,6 @@ const styles = StyleSheet.create({
     fontWeight: "400",
   },
 });
-
+ 
 export default ProfileCard;
+ 
