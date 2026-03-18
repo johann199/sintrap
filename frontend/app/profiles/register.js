@@ -9,12 +9,14 @@ import {
   StyleSheet
 } from "react-native"
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons"
+import { useRouter } from "expo-router" 
 
 export default function Register() {
 
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const router = useRouter() 
 
   const handleRegister = async () => {
 
@@ -104,7 +106,8 @@ export default function Register() {
 
         <Text style={styles.forgot}>¿Olvidaste tu contraseña?</Text>
 
-        <TouchableOpacity>
+        {/* ← Fix: navega al login */}
+        <TouchableOpacity onPress={() => router.push("/login")}>
           <Text style={styles.register}>Iniciar sesión</Text>
         </TouchableOpacity>
 
