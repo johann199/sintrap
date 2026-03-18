@@ -17,7 +17,7 @@ const T = theme.lightMode;
 
 export default function RegistrarVehiculo() {
   const [placa, setPlaca] = useState('');
-  const [seguro, setSeguro] = useState(false);
+  const [capacidad, setCapacidad] = useState('');
   const [conductorId, setConductorId] = useState(null);
   const [conductorNombre, setConductorNombre] = useState('');
   const [conductores, setConductores] = useState([]);
@@ -59,6 +59,10 @@ export default function RegistrarVehiculo() {
       Alert.alert('Error', 'Debes seleccionar la fecha cuando se vence el SOAT')
       return false;
     }
+    if(!capacidad){
+      Alert.alert('Error', 'Debes seleccionar cuanta gente cabe en el bus')
+      return false;
+    }
     return true;
   };
 
@@ -90,7 +94,7 @@ export default function RegistrarVehiculo() {
     try {
       await registerVehicle({
         placa: placa.trim().toUpperCase(),
-        seguro: seguro,
+        capacidad: capacidad,
         conductor_id: conductorId,
         fecha_inicio: fecha_Inicio,
         fecha_vencimiento: fecha_Vencimiento,
@@ -127,10 +131,24 @@ export default function RegistrarVehiculo() {
             <Ionicons name="bus-outline" size={18} color={T.icon.default} style={styles.inputIcon} />
             <TextInput
               style={styles.textInput}
-              placeholder="ejemplo KD72I"
+              placeholder="KRT22I"
               placeholderTextColor={T.input.placeholder}
               value={placa}
               onChangeText={(text) => setPlaca(text.toUpperCase())}
+            />
+          </View>
+
+          {/* Capacidad */}
+          <Text style={styles.label}> Capacidad del vehículo</Text>
+          <View style={styles.inputRow}>
+            <Ionicons name="people-outline" size={18} color={T.icon.default} style={styles.inputIcon} />
+            <TextInput
+              style={styles.textInput}
+              keyboardType="numeric"
+              placeholder="20"
+              placeholderTextColor={T.input.placeholder}
+              value={capacidad}
+              onChangeText={(text) => setCapacidad(text.toUpperCase())}
             />
           </View>
 
@@ -143,42 +161,27 @@ export default function RegistrarVehiculo() {
             </Text>
           </TouchableOpacity>
 
-          {/* Seguro */}
-          <Text style={styles.label}>Seguro</Text>
-          <View style={styles.inputRow}>
-            <Ionicons name="shield-outline" size={18} color={T.icon.default} style={styles.inputIcon} />
-            <Text style={[styles.textInput, { color: T.text.secondary }]}>
-              {seguro ? 'Con seguro' : 'Sin seguro'}
-            </Text>
-            <Switch
-              value={seguro}
-              onValueChange={setSeguro}
-              trackColor={{ false: T.input.border, true: T.Button.primary.background }}
-              thumbColor="#fff"
-            />
-          </View>
-
 
           <Text style={styles.label}>Inicio del soat</Text>
-          <TouchableOpacity style={styles.inputRow} onPress={()=> setShowInicio(true)}>
+          <TouchableOpacity style={styles.inputRow} onPress={() => setShowInicio(true)}>
             {/*fechas inicio del soat  */}
             <Ionicons name='calendar-outline' size={18} color={T.icon.default} style={styles.inputIcon} />
-            <Text style={styles.textInput}>          
+            <Text style={styles.textInput}>
               {fecha_Inicio || 'AA/MM/DD'}
             </Text>
           </TouchableOpacity>
           {
             showInicio && (
               <DateTimePicker
-              value={new Date()}
-              mode='date'
-              onChange={onChangeInicio}
+                value={new Date()}
+                mode='date'
+                onChange={onChangeInicio}
               />
             )
           }
 
           {/*fechas de vencimiento del soat  */}
-           <Text style={styles.label}>Vencimiento del soat</Text>
+          <Text style={styles.label}>Vencimiento del soat</Text>
           <TouchableOpacity style={styles.inputRow} onPress={() => setShowVencimiento(true)}>
             <Ionicons name='calendar-outline' size={18} color={T.icon.default} style={styles.inputIcon} />
             <Text style={styles.textInput}>

@@ -23,7 +23,7 @@ export async function registerVehicle(vehicleData) {
     .insert([
       {
         placa:        vehicleData.placa,
-        seguro:       vehicleData.seguro,
+        capacidad:       vehicleData.capacidad,
         conductor_id: vehicleData.conductor_id,
         activo:       true,
         fecha_inicio: vehicleData.fecha_inicio,
