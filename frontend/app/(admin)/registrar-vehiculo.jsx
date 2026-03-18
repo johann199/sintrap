@@ -1,4 +1,5 @@
- import { useState, useEffect } from 'react';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useState, useEffect } from 'react';
 import {
   View, Text, Switch, StyleSheet,
   Modal, TouchableOpacity, FlatList,
@@ -7,7 +8,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { getProfile }     from '../../services/profileService';
+import { getProfile } from '../../services/profileService';
 import { getCurrentUser } from '../../services/auth';
 import { getAvailableDrivers, registerVehicle } from '../../services/vehicleService';
 import theme from '../../constants/theme';
@@ -15,13 +16,17 @@ import theme from '../../constants/theme';
 const T = theme.lightMode;
 
 export default function RegistrarVehiculo() {
-  const [placa,           setPlaca]           = useState('');
-  const [seguro,          setSeguro]          = useState(false);
-  const [conductorId,     setConductorId]     = useState(null);
+  const [placa, setPlaca] = useState('');
+  const [seguro, setSeguro] = useState(false);
+  const [conductorId, setConductorId] = useState(null);
   const [conductorNombre, setConductorNombre] = useState('');
-  const [conductores,     setConductores]     = useState([]);
-  const [modalVisible,    setModalVisible]    = useState(false);
-  const [cargando,        setCargando]        = useState(false);
+  const [conductores, setConductores] = useState([]);
+  const [fecha_Inicio, setFecha_Inicio] = useState('');
+  const [fecha_Vencimiento, setFecha_Vencimiento] = useState('');
+  const [showInicio, setShowInicio] = useState(false);
+  const [showVencimiento, setShowVencimiento] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [cargando, setCargando] = useState(false);
 
   useEffect(() => {
     const inicializar = async () => {
@@ -46,7 +51,37 @@ export default function RegistrarVehiculo() {
       Alert.alert('Error', 'Debes seleccionar un conductor');
       return false;
     }
+    if (!fecha_Inicio) {
+      Alert.alert('Error', 'Debes seleccionar una fecha')
+      return false;
+    }
+    if (!fecha_Vencimiento) {
+      Alert.alert('Error', 'Debes seleccionar la fecha cuando se vence el SOAT')
+      return false;
+    }
     return true;
+  };
+
+  const onChangeInicio = (event, selectedDate) => {
+    //ceramos el piker de vencimiento (osea la fecha de vencimiento)
+    setShowInicio(false);
+
+    if (selectedDate) {
+      //Formato para mandar a supabase
+      const fechaFormateada = selectedDate.toISOString().split('T')[0];
+      setFecha_Inicio(fechaFormateada);
+    }
+  };
+
+  const onChangeVencimiento = (event, selectedDate) => {
+    //ceramos el piker de vencimiento (osea la fecha de vencimiento)
+    setShowVencimiento(false);
+
+    if (selectedDate) {
+      //Formato para mandar a supabase
+      const fechaFormateada = selectedDate.toISOString().split('T')[0];
+      setFecha_Vencimiento(fechaFormateada);
+    }
   };
 
   const handleGuardar = async () => {
@@ -54,9 +89,11 @@ export default function RegistrarVehiculo() {
     setCargando(true);
     try {
       await registerVehicle({
-        placa:        placa.trim().toUpperCase(),
-        seguro:       seguro,
+        placa: placa.trim().toUpperCase(),
+        seguro: seguro,
         conductor_id: conductorId,
+        fecha_inicio: fecha_Inicio,
+        fecha_vencimiento: fecha_Vencimiento,
       });
       Alert.alert('¡Éxito!', 'Vehículo registrado correctamente', [
         { text: 'OK', onPress: () => router.replace('/home') }
@@ -77,7 +114,7 @@ export default function RegistrarVehiculo() {
   return (
     <View style={styles.screen}>
 
-       
+
 
       <ScrollView contentContainerStyle={styles.scroll}>
 
@@ -120,6 +157,42 @@ export default function RegistrarVehiculo() {
               thumbColor="#fff"
             />
           </View>
+
+
+          <Text style={styles.label}>Inicio del soat</Text>
+          <TouchableOpacity style={styles.inputRow} onPress={()=> setShowInicio(true)}>
+            {/*fechas inicio del soat  */}
+            <Ionicons name='calendar-outline' size={18} color={T.icon.default} style={styles.inputIcon} />
+            <Text style={styles.textInput}>          
+              {fecha_Inicio || 'AA/MM/DD'}
+            </Text>
+          </TouchableOpacity>
+          {
+            showInicio && (
+              <DateTimePicker
+              value={new Date()}
+              mode='date'
+              onChange={onChangeInicio}
+              />
+            )
+          }
+
+          {/*fechas de vencimiento del soat  */}
+           <Text style={styles.label}>Vencimiento del soat</Text>
+          <TouchableOpacity style={styles.inputRow} onPress={() => setShowVencimiento(true)}>
+            <Ionicons name='calendar-outline' size={18} color={T.icon.default} style={styles.inputIcon} />
+            <Text style={styles.textInput}>
+              {fecha_Vencimiento || 'AA/MM/DD'}
+            </Text>
+          </TouchableOpacity>
+
+          {showVencimiento && (
+            <DateTimePicker
+              value={new Date()}
+              mode="date"
+              onChange={onChangeVencimiento}
+            />
+          )}
 
           {/* Botón Guardar */}
           <TouchableOpacity style={styles.btnPrimary} onPress={handleGuardar} disabled={cargando}>
@@ -181,9 +254,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
   },
-  backBtn:      { padding: 4 },
+  backBtn: { padding: 4 },
   headerTitulo: { fontSize: 22, fontWeight: '800', color: '#fff' },
-  headerSub:    { fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
+  headerSub: { fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
 
   // Scroll y tarjeta
   scroll: { padding: 20, paddingBottom: 40 },
@@ -199,22 +272,22 @@ const styles = StyleSheet.create({
   },
 
   // Inputs
-  label:    { fontSize: 13, fontWeight: '600', color: T.text.secondary, marginBottom: 6, marginTop: 12 },
+  label: { fontSize: 13, fontWeight: '600', color: T.text.secondary, marginBottom: 6, marginTop: 12 },
   inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: T.background, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 4 },
-  inputIcon:{ marginRight: 10 },
-  textInput:{ flex: 1, fontSize: 15, color: T.text.primary },
+  inputIcon: { marginRight: 10 },
+  textInput: { flex: 1, fontSize: 15, color: T.text.primary },
 
   // Botones
-  btnPrimary:       { backgroundColor: T.Button.primary.background, borderRadius: 50, padding: 16, alignItems: 'center', marginTop: 20, marginBottom: 10 },
-  btnPrimaryText:   { color: '#fff', fontWeight: '700', fontSize: 15 },
-  btnSecondary:     { backgroundColor: T.Button.secondary.background, borderWidth: 1, borderColor: T.Button.secondary.border, borderRadius: 50, padding: 16, alignItems: 'center' },
+  btnPrimary: { backgroundColor: T.Button.primary.background, borderRadius: 50, padding: 16, alignItems: 'center', marginTop: 20, marginBottom: 10 },
+  btnPrimaryText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  btnSecondary: { backgroundColor: T.Button.secondary.background, borderWidth: 1, borderColor: T.Button.secondary.border, borderRadius: 50, padding: 16, alignItems: 'center' },
   btnSecondaryText: { color: T.Button.secondary.text, fontWeight: '600', fontSize: 15 },
 
   // Modal
-  modalOverlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContainer: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '60%' },
-  modalTitulo:    { fontSize: 18, fontWeight: 'bold', color: T.text.primary, marginBottom: 16 },
-  modalItem:      { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: T.cards.border },
-  modalItemText:  { fontSize: 16, color: T.text.primary },
-  vacio:          { textAlign: 'center', color: T.text.tertiary, padding: 24 },
+  modalTitulo: { fontSize: 18, fontWeight: 'bold', color: T.text.primary, marginBottom: 16 },
+  modalItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: T.cards.border },
+  modalItemText: { fontSize: 16, color: T.text.primary },
+  vacio: { textAlign: 'center', color: T.text.tertiary, padding: 24 },
 });

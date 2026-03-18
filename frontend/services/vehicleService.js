@@ -26,6 +26,8 @@ export async function registerVehicle(vehicleData) {
         seguro:       vehicleData.seguro,
         conductor_id: vehicleData.conductor_id,
         activo:       true,
+        fecha_inicio: vehicleData.fecha_inicio,
+        fecha_vencimiento: vehicleData.fecha_vencimiento,
       },
     ]);
 
