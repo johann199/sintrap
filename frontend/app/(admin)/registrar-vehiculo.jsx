@@ -23,6 +23,7 @@ export default function RegistrarVehiculo() {
   const [conductores, setConductores] = useState([]);
   const [fecha_Inicio, setFecha_Inicio] = useState('');
   const [fecha_Vencimiento, setFecha_Vencimiento] = useState('');
+  const [seguro, setSeguro] = useState(false);
   const [showInicio, setShowInicio] = useState(false);
   const [showVencimiento, setShowVencimiento] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -51,15 +52,15 @@ export default function RegistrarVehiculo() {
       Alert.alert('Error', 'Debes seleccionar un conductor');
       return false;
     }
-    if (!fecha_Inicio) {
+    if (seguro && !fecha_Inicio) {
       Alert.alert('Error', 'Debes seleccionar una fecha')
       return false;
     }
-    if (!fecha_Vencimiento) {
+    if (seguro && !fecha_Vencimiento) {
       Alert.alert('Error', 'Debes seleccionar la fecha cuando se vence el SOAT')
       return false;
     }
-    if(!capacidad){
+    if (!capacidad) {
       Alert.alert('Error', 'Debes seleccionar cuanta gente cabe en el bus')
       return false;
     }
@@ -75,6 +76,8 @@ export default function RegistrarVehiculo() {
       const fechaFormateada = selectedDate.toISOString().split('T')[0];
       setFecha_Inicio(fechaFormateada);
     }
+
+
   };
 
   const onChangeVencimiento = (event, selectedDate) => {
@@ -96,6 +99,7 @@ export default function RegistrarVehiculo() {
         placa: placa.trim().toUpperCase(),
         capacidad: capacidad,
         conductor_id: conductorId,
+        seguro: seguro,
         fecha_inicio: fecha_Inicio,
         fecha_vencimiento: fecha_Vencimiento,
       });
@@ -161,41 +165,60 @@ export default function RegistrarVehiculo() {
             </Text>
           </TouchableOpacity>
 
-
-          <Text style={styles.label}>Inicio del soat</Text>
-          <TouchableOpacity style={styles.inputRow} onPress={() => setShowInicio(true)}>
-            {/*fechas inicio del soat  */}
-            <Ionicons name='calendar-outline' size={18} color={T.icon.default} style={styles.inputIcon} />
-            <Text style={styles.textInput}>
-              {fecha_Inicio || 'AA/MM/DD'}
-            </Text>
-          </TouchableOpacity>
-          {
-            showInicio && (
-              <DateTimePicker
-                value={new Date()}
-                mode='date'
-                onChange={onChangeInicio}
-              />
-            )
-          }
-
-          {/*fechas de vencimiento del soat  */}
-          <Text style={styles.label}>Vencimiento del soat</Text>
-          <TouchableOpacity style={styles.inputRow} onPress={() => setShowVencimiento(true)}>
-            <Ionicons name='calendar-outline' size={18} color={T.icon.default} style={styles.inputIcon} />
-            <Text style={styles.textInput}>
-              {fecha_Vencimiento || 'AA/MM/DD'}
-            </Text>
-          </TouchableOpacity>
-
-          {showVencimiento && (
-            <DateTimePicker
-              value={new Date()}
-              mode="date"
-              onChange={onChangeVencimiento}
+          {/*seguro*/}
+          <Text style={styles.label}>Seguro</Text>
+          <View style={styles.inputRow}>
+             <Ionicons name='shield-outline' size={18} color={T.icon.default} style={styles.inputIcon} />
+             <Text style={{ flex:1, color: T.text.primary }}>¿Tiene SOAT?</Text>
+            <Switch
+              value={seguro}
+              onValueChange={(valor) => {
+                setSeguro(valor)
+              }}
             />
+          </View>
+
+          {seguro && (
+            <View>
+              {/*fecha de inicio del soat */}
+              <Text style={styles.label}>Inicio del soat</Text>
+              <TouchableOpacity style={styles.inputRow} onPress={() => setShowInicio(true)}>
+                <Ionicons name='calendar-outline' size={18} color={T.icon.default} style={styles.inputIcon} />
+                <Text style={styles.textInput}>
+                  {fecha_Inicio || 'AA/MM/DD'}
+                </Text>
+              </TouchableOpacity>
+              {
+                showInicio && (
+                  <DateTimePicker
+                    value={new Date()}
+                    mode='date'
+                    onChange={onChangeInicio}
+                  />
+                )
+              }
+
+              {/*fechas de vencimiento del soat  */}
+              <Text style={styles.label}>Vencimiento del soat</Text>
+              <TouchableOpacity style={styles.inputRow} onPress={() => setShowVencimiento(true)}>
+                <Ionicons name='calendar-outline' size={18} color={T.icon.default} style={styles.inputIcon} />
+                <Text style={styles.textInput}>
+                  {fecha_Vencimiento || 'AA/MM/DD'}
+                </Text>
+              </TouchableOpacity>
+
+              {showVencimiento && (
+                <DateTimePicker
+                  value={new Date()}
+                  mode="date"
+                  onChange={onChangeVencimiento}
+                />
+              )}
+
+            </View>
           )}
+
+
 
           {/* Botón Guardar */}
           <TouchableOpacity style={styles.btnPrimary} onPress={handleGuardar} disabled={cargando}>
