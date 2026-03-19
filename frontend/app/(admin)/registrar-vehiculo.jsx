@@ -100,8 +100,8 @@ export default function RegistrarVehiculo() {
         capacidad: capacidad,
         conductor_id: conductorId,
         seguro: seguro,
-        fecha_inicio: fecha_Inicio,
-        fecha_vencimiento: fecha_Vencimiento,
+        fecha_inicio:seguro? fecha_Inicio : null,
+        fecha_vencimiento: seguro ? fecha_Vencimiento : null,
       });
       Alert.alert('¡Éxito!', 'Vehículo registrado correctamente', [
         { text: 'OK', onPress: () => router.replace('/home') }
@@ -168,8 +168,8 @@ export default function RegistrarVehiculo() {
           {/*seguro*/}
           <Text style={styles.label}>Seguro</Text>
           <View style={styles.inputRow}>
-             <Ionicons name='shield-outline' size={18} color={T.icon.default} style={styles.inputIcon} />
-             <Text style={{ flex:1, color: T.text.primary }}>¿Tiene SOAT?</Text>
+            <Ionicons name='shield-outline' size={18} color={T.icon.default} style={styles.inputIcon} />
+            <Text style={{ flex: 1, color: T.text.primary }}>¿Tiene SOAT?</Text>
             <Switch
               value={seguro}
               onValueChange={(valor) => {
